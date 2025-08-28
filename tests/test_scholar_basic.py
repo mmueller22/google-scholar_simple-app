@@ -77,7 +77,6 @@ class TestScholarQuery(unittest.TestCase):
         # Now using SearchScholarQuery which has the set_words method
         self.query.set_words("machine learning")
         # If we get here without exception, the method exists and works
-        self.assertTrue(True)
 
     def test_set_timeframe(self) -> None:
         """Test setting timeframe."""
