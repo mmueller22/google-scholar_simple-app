@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  # Development environment with hot reloading
+  scholar-dev:
+    build:
+      context: .
+      target: development
+    volumes:
+      - .:/app
+      - scholar-cookies:/app/.scholar-cookies
+    environment:
+      - SCHOLAR_COOKIE_FILE=/app/.scholar-cookies/scholar.cookie
+      - PYTHONPATH=/app
+    working_dir: /app
+    stdin_open: true
+    tty: true
+    command: /bin/bash
+
+  # Production environment
+  scholar-prod:
+    build:
+      context: .
+      target: production
+    volumes:
+      - scholar-cookies:/home/scholar/.scholar-cookies
+    environment:
+      - SCHOLAR_COOKIE_FILE=/home/scholar/.scholar-cookies/scholar.cookie
+    command: ["python", "scholar.py"]
+
+  # Testing environment
+  scholar-test:
+    build:
+      context: .
+      target: testing
+    volumes:
+      - .:/app
+    environment:
+      - PYTHONPATH=/app
+    command: ["pytest", "-v", "--cov=scholar", "--cov-report=term-missing"]
+
+  # Interactive Jupyter notebook for data analysis
+  scholar-notebook:
+    build:
+      context: .
+      target: development
+    ports:
+      - "8888:8888"
+    volumes:
+      - .:/app
+      - scholar-cookies:/app/.scholar-cookies
+      - ./notebooks:/app/notebooks
+    environment:
+      - SCHOLAR_COOKIE_FILE=/app/.scholar-cookies/scholar.cookie
+      - PYTHONPATH=/app
+    command: >
+      bash -c "
+        pip install jupyter pandas matplotlib seaborn &&
+        jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser --allow-root --notebook-dir=/app/notebooks
+      "
+
+volumes:
+  scholar-cookies:
+    driver: local
